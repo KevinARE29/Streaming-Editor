@@ -1,4 +1,4 @@
 s/unix/linux/g
 s/os./operating sys./
-s/powerful/insane/
+s/powerful/insane/p
 s/linux/mint/

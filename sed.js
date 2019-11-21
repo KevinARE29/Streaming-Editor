@@ -20,12 +20,12 @@ const yargs = require('yargs')
   .help('h').argv;
 
 const args = yargs._;
-console.log(yargs);
+//console.log(yargs);
 
 var commands = [];
 var file_path;
 
-if(yargs.i){
+if (yargs.i) {
   validate_extension(yargs.i);
 }
 
@@ -87,27 +87,26 @@ function validate_txt_extension(file_path) {
       );
       return process.exit();
     }
-  }
-  catch (err) {
-    console.log(
-      `File path not found`
-    );
+  } catch (err) {
+    console.log(`File path not found`);
   }
 }
 
 function execute_commands(commands, file_path) {
   fs.access(file_path, (err, data) => {
     if (err) {
-      console.error(err);
+      console.log(
+        "The file doesn't exist or the user don't have permissions to read the file"
+      );
       return;
     }
     fs.readFile(file_path, (err, data) => {
       if (err) {
-        console.error(err);
+        console.log('Error while reading the file');
         return;
       }
       const lines = data.toString().split('\n');
-      var replaced_lines = [];
+      var new_lines = [];
       for (line of lines) {
         is_substituted_line = false;
         for (command of commands) {
@@ -123,33 +122,37 @@ function execute_commands(commands, file_path) {
             } else {
               line = line.replace(old_string, new_string);
             }
-            is_substituted_line = true;
+            if (!yargs.n) {
+              if (flag === 'p') {
+                console.log(line);
+              }
+            } else {
+              if (flag === 'p') {
+                console.log(line);
+              }
+            }
           }
         } //end of "for commands" loop
-        if (is_substituted_line){
-          replaced_lines = replaced_lines.concat(line);
-        }
-        if (!yargs.n) {
+        new_lines = new_lines.concat(line);
+        if (!(yargs.n || yargs.i)) {
           console.log(line);
-          if ((flag === 'p') & is_substituted_line) {
-            console.log(line);
-          }
-        } else {
-          if ((flag === 'p') & is_substituted_line) {
-            console.log(line);
-          }
         }
       } // end of "for lines" loop
       if (yargs.i) {
         if (yargs.i !== true) {
-          let backup_file_path = file_path + "." + yargs.i
-          fs.copyFileSync(file_path, backup_file_path, (err) => {
+          let backup_file_path = file_path + '.' + yargs.i;
+          fs.copyFileSync(file_path, backup_file_path, err => {
             if (err) throw err;
           });
         }
-        fs.writeFileSync(file_path, replaced_lines.join("\n"), { flag: 'w' }, err => {
-          if (err) throw err;
-        });
+        fs.writeFileSync(
+          file_path,
+          new_lines.join('\n'),
+          { flag: 'w' },
+          err => {
+            if (err) throw err;
+          }
+        );
       }
     });
   });
