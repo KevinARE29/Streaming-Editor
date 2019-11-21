@@ -91,7 +91,7 @@ function execute_commands(commands, file_path) {
         console.error(err);
         return;
       }
-      const lines = data.toString().split('\r\n');
+      const lines = data.toString().split('\n');
       var replaced_lines = [];
       for (line of lines) {
         is_substituted_line = false;
@@ -129,14 +129,12 @@ function execute_commands(commands, file_path) {
         if (yargs.i !== true) {
           //Generates bak
           let backup_file_path = file_path + "." + yargs.i
-          fs.copyFile(file_path, backup_file_path, (err) => {
+          fs.copyFileSync(file_path, backup_file_path, (err) => {
             if (err) throw err;
-            console.log('source.txt was copied to destination.txt');
           });
         }
-        console.log(`Modificates file: ${file_path}`);
-        fs.writeFile(file_path, replaced_lines.join("\n"), { flag: 'w' }, err => {
-          console.log(err);
+        fs.writeFileSync(file_path, replaced_lines.join("\n"), { flag: 'w' }, err => {
+          if (err) throw err;
         });
       }
     });
