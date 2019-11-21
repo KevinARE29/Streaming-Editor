@@ -17,15 +17,17 @@ const yargs = require('yargs')
     'f',
     'Expects a file which consists of several lines containing one command each.'
   )
-  .help('h')
-  .alias('h', 'help').argv;
+  .help('h').argv;
 
 const args = yargs._;
 console.log(yargs);
-console.log(args);
 
 var commands = [];
 var file_path;
+
+if(yargs.i){
+  validate_extension(yargs.i);
+}
 
 if (!(yargs.f || yargs.e)) {
   commands.push(args[0]);
@@ -38,13 +40,13 @@ if (!(yargs.f || yargs.e)) {
     if (typeof yargs.f === 'string') {
       commands_file_path = yargs.f;
       console.log(commands_file_path);
-      validate_file_extension(commands_file_path);
+      validate_txt_extension(commands_file_path);
       file_commands = fs.readFileSync(commands_file_path, 'utf8').split('\r\n');
       commands = commands.concat(file_commands);
     } else {
       for (file of yargs.f) {
         commands_file_path = file;
-        validate_file_extension(commands_file_path);
+        validate_txt_extension(commands_file_path);
         file_commands = fs
           .readFileSync(commands_file_path, 'utf8')
           .split('\r\n');
@@ -57,10 +59,16 @@ if (!(yargs.f || yargs.e)) {
     commands = commands.concat(yargs.e);
   }
 }
-validate_file_extension(file_path);
-console.log(`commands: ${commands}`);
+validate_txt_extension(file_path);
 validate_commands(commands);
 execute_commands(commands, file_path);
+
+function validate_extension(ext) {
+  if (!/[a-zA-Z]$/.test(ext)) {
+    console.log(`Extension not valid: ${ext}`);
+    return process.exit();
+  }
+}
 
 function validate_commands(commands) {
   for (command of commands) {
@@ -71,12 +79,19 @@ function validate_commands(commands) {
   }
 }
 
-function validate_file_extension(file_path) {
-  if (path.extname(file_path) !== '.txt') {
+function validate_txt_extension(file_path) {
+  try {
+    if (path.extname(file_path) !== '.txt') {
+      console.log(
+        `File Extension not valid: ${file_path}. The File should have .txt extension`
+      );
+      return process.exit();
+    }
+  }
+  catch (err) {
     console.log(
-      `File Extension not valid: ${file_path}. The File should have .txt extension`
+      `File path not found`
     );
-    return process.exit();
   }
 }
 
@@ -127,7 +142,6 @@ function execute_commands(commands, file_path) {
       } // end of "for lines" loop
       if (yargs.i) {
         if (yargs.i !== true) {
-          //Generates bak
           let backup_file_path = file_path + "." + yargs.i
           fs.copyFileSync(file_path, backup_file_path, (err) => {
             if (err) throw err;
