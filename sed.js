@@ -22,21 +22,24 @@ const yargs = require('yargs')
 const args = yargs._;
 //console.log(yargs);
 
-var commands = [];
-var file_path;
+var commands = []; //This array saves all commands of multiples -f or -e options.
+var file_path; //This variable saves the path of the file that contains the lines to be readed or updated.
 
+//Validates if the extension of the backup file is valid
 if (yargs.i) {
   validate_extension(yargs.i);
 }
 
 if (!(yargs.f || yargs.e)) {
+  /* If the user especifies only a command and file without -e or -f option.
+     The command and the file will be on the args variable. */
   commands.push(args[0]);
   file_path = args[1];
 } else {
   if (yargs.f) {
-    var commands_file_path;
+    var commands_file_path; //This variable saves the path of the files that contains the commands.
     file_path = args[0];
-    var file_commands;
+    var file_commands; //This variable temporaly saves each command readed from the commands_file_path.
     if (typeof yargs.f === 'string') {
       commands_file_path = yargs.f;
       console.log(commands_file_path);
@@ -59,11 +62,18 @@ if (!(yargs.f || yargs.e)) {
     commands = commands.concat(yargs.e);
   }
 }
+
+//This sed implementation will only read txt files. Not png, jpg, docx or any other extension.
 validate_txt_extension(file_path);
+
+//Validates each command of the commands array variable.
 validate_commands(commands);
+
+//Executes all commands of the commands array variable on the file.
 execute_commands(commands, file_path);
 
 function validate_extension(ext) {
+  //The extension of the backup file can't contains special characters.
   if (!/[a-zA-Z]$/.test(ext)) {
     console.log(`Extension not valid: ${ext}`);
     return process.exit();
@@ -108,9 +118,8 @@ function execute_commands(commands, file_path) {
       const lines = data.toString().split('\n');
       var new_lines = [];
       for (line of lines) {
-        is_substituted_line = false;
         for (command of commands) {
-          splitted_command = command.split('/');
+          var splitted_command = command.split('/');
           var old_string = splitted_command[1];
           var new_string = splitted_command[2];
           var flag = splitted_command[3];
